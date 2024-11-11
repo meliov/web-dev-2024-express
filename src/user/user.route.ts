@@ -1,10 +1,12 @@
-import { Router } from 'express';
+import e, { Router } from 'express';
+import { setDefaultAutoSelectFamily } from 'net';
+import { unis } from '../university/university.route';
 
 const userRouter = Router();
 
 let users = [
-  { id: 1, name: 'John Doe', email: 'john@example.com' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com' },
+  { id: 4, name: 'John Doe', email: 'john@example.com', university: {id: 1, name: 'TU-Sofia', location: 'Sofia',}, subjects: ['maths'] },
+  { id: 5, name: 'Jane Smith', email: 'jane@example.com', university: {id: 1, name: 'TU-Sofia', location: 'Sofia'}, subjects: ['maths'] },
 ];
 
 userRouter.get('/', (req, res) => {
@@ -26,6 +28,8 @@ userRouter.post('/', (req, res) => {
     id: users.length + 1,
     name: req.body.name,
     email: req.body.email,
+    university: req.body.university,
+    subjects: req.body.subjects
   };
   users.push(newUser);
   res.status(201).json(newUser);
@@ -40,6 +44,8 @@ userRouter.put('/:id', (req, res) => {
       id: userId,
       name: req.body.name,
       email: req.body.email,
+      university: req.body.university,
+      subjects: req.body.subjects
     };
     res.json(users[userIndex]);
   } else {
@@ -58,5 +64,48 @@ userRouter.delete('/:id', (req, res) => {
     res.status(404).json({ message: 'User not found' });
   }
 });
+
+
+
+userRouter.patch('/:id/update-university', (req, res) => {
+  const userId = parseInt(req.params.id, 10);
+  const { universityId } = req.body;
+  
+  const user = users.find((u) => u.id === userId);
+  if (!user) {
+     res.status(404).json({ message: 'User not found' });
+  }
+
+  const university = unis.find((u) => u.id === universityId);
+  if (!university) {
+    res.status(400).json({ message: 'University not found' });
+  }else{
+    user!!.university.id = university.id;
+    user!!.university.name = university.name;
+    user!!.university.location = university.name;
+  }
+
+  res.json(user);
+});
+
+
+userRouter.patch('/:id/subjects', (req, res) => {
+  const userId = parseInt(req.params.id, 10);
+  const { subjects } = req.body;
+
+  const user = users.find((u) => u.id === userId);
+  if (!user) {
+     res.status(404).json({ message: 'User not found' });
+  }
+
+  if (!subjects) {
+    res.status(400).json({ message: 'Invalid Subjects!' });
+  }else{
+    user!!.subjects = [subjects];
+  }
+
+  res.json(user);
+});
+
 
 export default userRouter;
